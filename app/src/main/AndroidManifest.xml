@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.olfuantipoloregistrarqueueingmanagementsystem">
+
+    <!-- Internet for API calls -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Notifications (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Optional: keep CPU on for background tasks -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Optional: if you plan to auto-start on reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Optional: read/write external storage (legacy Android <10) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/appicon"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/appicon"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.OLFUAntipoloRegistrarQueueingManagementSystem"
+        android:networkSecurityConfig="@xml/network_security_config">
+
+        <!-- Login screen as Launcher -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Dashboard -->
+        <activity
+            android:name=".UserDashboard"
+            android:exported="false"/>
+
+        <!-- Registration screen -->
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false"/>
+    </application>
+
+</manifest>

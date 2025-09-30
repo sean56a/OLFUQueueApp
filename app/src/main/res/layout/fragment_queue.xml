@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- My Requests Section Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Requests"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#008C45"
+            android:layout_marginBottom="12dp"
+            android:layout_gravity="center_horizontal" />
+
+
+        <!-- Requests Container -->
+        <LinearLayout
+            android:id="@+id/requestsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:paddingBottom="8dp"/>
+
+        <!-- Queue Number Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#ffffff"
+            android:elevation="3dp"
+            android:padding="16dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:layout_gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your Queue Number"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#008C45"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/queueNumberText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:textSize="36sp"
+                android:textStyle="bold"
+                android:textColor="#008C45"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/queueMessageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="16sp"
+                android:textColor="#008C45"
+                android:layout_gravity="center_horizontal"/>
+        </LinearLayout>
+
+        <!-- Now Serving Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="#ffffff"
+            android:elevation="3dp"
+            android:padding="16dp"
+            android:layout_marginBottom="24dp"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:layout_gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Now Serving"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#008C45"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/nowServingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="--"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="#000000"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/lineText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Line: --"
+                android:textSize="16sp"
+                android:textColor="#555555"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="2dp"/>
+
+            <TextView
+                android:id="@+id/nameText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Name: --"
+                android:textSize="16sp"
+                android:textColor="#555555"
+                android:layout_gravity="center_horizontal"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/homeFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="#ffffff"
+    android:gravity="top">
+
+    <!-- OLFU Logo (VectorSafe) -->
+    <ImageView
+        android:id="@+id/ivOlfuLogo"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="OLFU Logo"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/logo" /> <!-- use your PNG here -->
+    <!-- fallback -->
+
+    <!-- Welcome Message -->
+    <TextView
+        android:id="@+id/tvWelcomeUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome!"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:textColor="#008c45"
+        android:layout_marginBottom="8dp"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"/>
+
+
+    <!-- Staff Counter Info -->
+    <TextView
+        android:id="@+id/tvCounterInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textStyle="italic"
+        android:textSize="14sp"
+        android:textColor="#555555"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"/>
+
+    <!-- Registrar Hours -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@drawable/section_bg"
+        android:layout_marginBottom="20dp"
+        android:elevation="4dp">
+
+        <TextView
+            android:id="@+id/tvRegistrarStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Registrar is: Open"
+            android:textColor="#008c45"
+            android:textStyle="bold"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:id="@+id/tvOpeningHours"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Opening Hours: 8:00 AM - 12:00 PM, 1:00 PM - 5:00 PM"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tvLunchBreak"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lunch Break: 12:00 PM - 1:00 PM"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:layout_marginTop="2dp"/>
+    </LinearLayout>
+
+    <!-- Queue Button -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnGetQueue"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Get Queueing Now!"
+        android:textColor="#ffffff"
+        android:backgroundTint="#008c45"
+        android:textStyle="bold"
+        android:elevation="4dp"/>
+</LinearLayout>
