@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import com.android.volley.Request
+import com.android.volley.*
 import com.android.volley.toolbox.Volley
 import org.json.JSONObject
 import java.io.InputStream
@@ -80,7 +80,8 @@ class FormFragment : Fragment() {
 
     // Spinner setup
     private fun setupSpinner(spinner: Spinner, items: List<String>) {
-        spinner.adapter = object : ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_dropdown_item, items) {
+        val ctx = context ?: return
+        spinner.adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_spinner_dropdown_item, items) {
             override fun isEnabled(position: Int) = position != 0
         }
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -95,6 +96,7 @@ class FormFragment : Fragment() {
 
     // Load departments from API
     private fun loadDepartments() {
+        val ctx = context ?: return
         val url = "https://olfu-registrar.ellequin.com/api/get_departments.php"
         val request = com.android.volley.toolbox.StringRequest(Request.Method.GET, url,
             { response ->
@@ -110,16 +112,17 @@ class FormFragment : Fragment() {
                     }
                     setupSpinner(spDepartment, deptList)
                 } else {
-                    Toast.makeText(requireContext(), "Failed to load departments", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, "Failed to load departments", Toast.LENGTH_SHORT).show()
                 }
             },
-            { _ -> Toast.makeText(requireContext(), "Error loading departments", Toast.LENGTH_SHORT).show() }
+            { _ -> Toast.makeText(ctx, "Error loading departments", Toast.LENGTH_SHORT).show() }
         )
-        Volley.newRequestQueue(requireContext()).add(request)
+        Volley.newRequestQueue(ctx).add(request)
     }
 
     // Load documents from API
     private fun loadDocuments() {
+        val ctx = context ?: return
         val url = "https://olfu-registrar.ellequin.com/api/get_documents.php"
         val request = com.android.volley.toolbox.StringRequest(Request.Method.GET, url,
             { response ->
@@ -130,7 +133,7 @@ class FormFragment : Fragment() {
                     checkBoxes.clear()
                     for (i in 0 until docArray.length()) {
                         val doc = docArray.getJSONObject(i)
-                        val cb = CheckBox(requireContext())
+                        val cb = CheckBox(ctx)
                         cb.text = doc.getString("name")
                         cb.tag = doc.getString("name")
                         cb.textSize = 16f
@@ -139,18 +142,19 @@ class FormFragment : Fragment() {
                         checkBoxes.add(cb)
                     }
                 } else {
-                    Toast.makeText(requireContext(), "Failed to load documents", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(ctx, "Failed to load documents", Toast.LENGTH_SHORT).show()
                 }
             },
-            { _ -> Toast.makeText(requireContext(), "Error loading documents", Toast.LENGTH_SHORT).show() }
+            { _ -> Toast.makeText(ctx, "Error loading documents", Toast.LENGTH_SHORT).show() }
         )
-        Volley.newRequestQueue(requireContext()).add(request)
+        Volley.newRequestQueue(ctx).add(request)
     }
 
     // Get file name from URI
     private fun getFileName(uri: Uri): String {
+        val ctx = context ?: return "attachment"
         var name = "attachment"
-        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+        val cursor = ctx.contentResolver.query(uri, null, null, null, null)
         cursor?.use {
             if (it.moveToFirst()) {
                 val idx = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
@@ -162,6 +166,7 @@ class FormFragment : Fragment() {
 
     // Submit form
     private fun submitForm() {
+        val ctx = context ?: return
         val firstName = tvFirstName.text.toString().trim()
         val lastName = tvLastName.text.toString().trim()
         val studentNumber = etStudentNumber.text.toString().trim()
@@ -176,7 +181,7 @@ class FormFragment : Fragment() {
             section.isEmpty() || lastSchoolYear.isEmpty() || lastSemester.isEmpty() ||
             departmentId.isEmpty() || documentsStr.isEmpty()
         ) {
-            Toast.makeText(requireContext(), "Please fill all required fields.", Toast.LENGTH_LONG).show()
+            Toast.makeText(ctx, "Please fill all required fields.", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -184,18 +189,17 @@ class FormFragment : Fragment() {
 
         val multipartRequest = object : VolleyMultipartRequest(
             Method.POST, url,
-            { response ->
+            Response.Listener { response ->
                 val json = JSONObject(String(response.data))
                 if (json.getString("status") == "success") {
-                    Toast.makeText(requireContext(), "Request submitted successfully!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(ctx, "Request submitted successfully!", Toast.LENGTH_LONG).show()
                     clearForm()
-                    fetchNowServing(departmentId, studentNumber)
                 } else {
-                    Toast.makeText(requireContext(), "Submission failed: ${json.getString("message")}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(ctx, "Submission failed: ${json.getString("message")}", Toast.LENGTH_LONG).show()
                 }
             },
-            { error ->
-                Toast.makeText(requireContext(), "Submission failed: ${error.message}", Toast.LENGTH_LONG).show()
+            Response.ErrorListener { error ->
+                Toast.makeText(ctx, "Submission failed: ${error.message}", Toast.LENGTH_LONG).show()
             }
         ) {
             override fun getParams(): MutableMap<String, String> {
@@ -215,7 +219,7 @@ class FormFragment : Fragment() {
 
             override fun getByteData(): MutableMap<String, DataPart>? {
                 attachmentUri?.let {
-                    val inputStream: InputStream? = requireContext().contentResolver.openInputStream(it)
+                    val inputStream: InputStream? = ctx.contentResolver.openInputStream(it)
                     val bytes = inputStream?.readBytes()
                     if (bytes != null) {
                         return hashMapOf("attachment" to DataPart(getFileName(it), bytes))
@@ -225,51 +229,9 @@ class FormFragment : Fragment() {
             }
         }
 
-        Volley.newRequestQueue(requireContext()).add(multipartRequest)
+        Volley.newRequestQueue(ctx).add(multipartRequest)
     }
 
-    // Fetch "Now Serving" and user's queue
-    private fun fetchNowServing(departmentId: String, studentNumber: String) {
-        val url = "https://olfu-registrar.ellequin.com/api/get_now_serving.php?department=$departmentId"
-        val request = com.android.volley.toolbox.StringRequest(Request.Method.GET, url,
-            { response ->
-                val json = JSONObject(response)
-                if (json.getString("status") == "success") {
-                    val requestsArray = json.getJSONArray("requests")
-                    var userQueueNum: Int? = null
-                    var nowServingNum: Int? = null
-
-                    for (i in 0 until requestsArray.length()) {
-                        val req = requestsArray.getJSONObject(i)
-                        val status = req.getString("status")
-                        val queueNum = req.getInt("queueing_num")
-
-                        if (req.getString("student_number") == studentNumber) {
-                            userQueueNum = queueNum
-                        }
-
-                        if (status == "Serving" && (nowServingNum == null || queueNum < nowServingNum)) {
-                            nowServingNum = queueNum
-                        }
-                    }
-
-                    Toast.makeText(
-                        requireContext(),
-                        "Your Queue Number: ${userQueueNum ?: "Not assigned"}\nNow Serving: ${nowServingNum ?: "Not yet"}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    Toast.makeText(requireContext(), "Failed to fetch queue info", Toast.LENGTH_SHORT).show()
-                }
-            },
-            { error ->
-                Toast.makeText(requireContext(), "Error fetching queue: ${error.message}", Toast.LENGTH_SHORT).show()
-            }
-        )
-        Volley.newRequestQueue(requireContext()).add(request)
-    }
-
-    // Clear form
     private fun clearForm() {
         etStudentNumber.text.clear()
         etSection.text.clear()
