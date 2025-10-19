@@ -10,20 +10,28 @@ data class RequestItem(
     val documents: String,
     val status: String,
     val decline_reason: String? = null,
-    val queueing_num: String? = null,
+    val queueing_num: Int? = null,       // <-- FIXED
     val serving_position: Int? = null,
-    val served_by: String? = null, // <-- ADD THIS
+    val served_by: String? = null,
     val created_at: String,
     var isUserQueue: Boolean = false
 ) {
     val fullName: String
         get() = "$first_name $last_name"
 
-    // computed property for remarks/action
     val remarks: String
         get() = when (status) {
             "Completed" -> "Claimed"
             "Declined" -> decline_reason ?: ""
             else -> ""
         }
+
+    val statusMessage: String
+        get() = when (status) {
+            "Serving" -> "\uD83C\uDF89 It's your turn! Please proceed to the counter."
+            "In Queue Now" -> "You are in line."
+            else -> status
+        }
 }
+
+

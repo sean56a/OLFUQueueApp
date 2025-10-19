@@ -85,15 +85,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Identifier: Email or Student Number -->
         <EditText
             android:id="@+id/inputEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
+            android:hint="Email or Student Number"
             android:inputType="textEmailAddress"
             android:backgroundTint="@android:color/darker_gray"
             android:padding="12dp" />
 
+        <!-- Password -->
         <EditText
             android:id="@+id/inputPassword"
             android:layout_width="match_parent"
@@ -104,6 +106,7 @@
             android:padding="12dp"
             android:layout_marginTop="12dp" />
 
+        <!-- Login Button -->
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
@@ -113,6 +116,7 @@
             android:layout_marginTop="20dp"
             android:background="@drawable/btn_gradient" />
 
+        <!-- Switch to Register -->
         <TextView
             android:id="@+id/txtSwitchToRegister"
             android:layout_width="wrap_content"

@@ -26,24 +26,22 @@ import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var inputEmail: EditText
+    private lateinit var inputIdentifier: EditText
     private lateinit var inputPassword: EditText
     private lateinit var btnLogin: AppCompatButton
     private lateinit var txtSwitchToRegister: TextView
     private lateinit var overlayView: View
     private lateinit var bottomNav: BottomNavigationView
-
     private lateinit var userBundle: Bundle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // 🔔 Create notification channel once at startup
         createNotificationChannel()
 
         // Bind views
-        inputEmail = findViewById(R.id.inputEmail)
+        inputIdentifier = findViewById(R.id.inputEmail) // still called inputEmail in XML
         inputPassword = findViewById(R.id.inputPassword)
         btnLogin = findViewById(R.id.btnLogin)
         txtSwitchToRegister = findViewById(R.id.txtSwitchToRegister)
@@ -57,12 +55,12 @@ class MainActivity : AppCompatActivity() {
 
         // Login button
         btnLogin.setOnClickListener {
-            val email = inputEmail.text.toString().trim()
+            val identifier = inputIdentifier.text.toString().trim()
             val password = inputPassword.text.toString().trim()
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+            if (identifier.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Please enter email or student number and password", Toast.LENGTH_SHORT).show()
             } else {
-                loginUser(email, password)
+                loginUser(identifier, password)
             }
         }
 
@@ -83,9 +81,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loginUser(email: String, password: String) {
-        val url = "https://olfu-registrar.ellequin.com/api/login.php"
-        Log.d("LoginRequest", "URL: $url, email=$email")
+    private fun loginUser(identifier: String, password: String) {
+        val url = "http://10.0.2.2/queue/api/login.php" // emulator localhost
+        Log.d("LoginRequest", "URL: $url, identifier=$identifier")
 
         val request = object : StringRequest(
             Method.POST, url,
@@ -106,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                             putString("role", user.getString("role"))
                             putInt("department_id", user.optInt("department_id", -1))
                             putInt("counter_no", user.optInt("counter_no", -1))
-                            putString("student_number", user.optString("student_number", ""))
+                            putString("student_number", user.optString("student_num", "")) // matches PHP
                         }
 
                         // Hide login form
@@ -115,22 +113,22 @@ class MainActivity : AppCompatActivity() {
                         findViewById<TextView>(R.id.schoolTitle).visibility = View.GONE
                         overlayView.visibility = View.GONE
 
-                        // Show fragment container and bottom nav
+                        // Show fragment container & bottom nav
                         findViewById<androidx.fragment.app.FragmentContainerView>(R.id.fragmentContainer).visibility = View.VISIBLE
                         bottomNav.visibility = View.VISIBLE
 
-                        // Load HomeFragment immediately
+                        // Load HomeFragment
                         supportFragmentManager.commit {
                             replace(R.id.fragmentContainer, HomeFragment().apply { arguments = userBundle })
                         }
 
-                        // Start QueueCheckWorker only after login
-                        val studentNumber = user.optString("student_number", "")
+                        // Start QueueCheckWorker
+                        val studentNumber = user.optString("student_num", "")
                         if (studentNumber.isNotEmpty()) {
                             QueueCheckWorker.startWorker(this, studentNumber)
                         }
 
-                        // 🔔 Show notification after successful login
+                        // Show notification
                         showLoginNotification(user.getString("first_name"))
 
                     } else {
@@ -148,22 +146,20 @@ class MainActivity : AppCompatActivity() {
             }
         ) {
             override fun getParams(): MutableMap<String, String> {
-                return hashMapOf("email" to email, "password" to password)
+                return hashMapOf(
+                    "identifier" to identifier, // matches PHP
+                    "password" to password
+                )
             }
 
             override fun getBodyContentType(): String {
                 return "application/x-www-form-urlencoded; charset=UTF-8"
-            }
-
-            override fun getHeaders(): MutableMap<String, String> {
-                return hashMapOf("Content-Type" to "application/x-www-form-urlencoded; charset=UTF-8")
             }
         }
 
         Volley.newRequestQueue(this).add(request)
     }
 
-    // 🔔 Setup Notification Channel (required for Android 8+)
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -180,11 +176,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 🔔 Build and show login notification
     private fun showLoginNotification(firstName: String) {
-
         val builder = NotificationCompat.Builder(this, "queue_status_channel")
-            .setSmallIcon(R.drawable.ic_notification) // make sure this file exists in res/drawable
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Login Successful")
             .setContentText("Welcome back, $firstName!")
             .setPriority(NotificationCompat.PRIORITY_HIGH)

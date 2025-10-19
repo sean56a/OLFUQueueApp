@@ -4,7 +4,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "https://olfu-registrar.ellequin.com/api/"
+    // Emulator accesses local XAMPP server via 10.0.2.2
+    private const val BASE_URL = "http://10.0.2.2/queue/api/"
 
     val instance: ApiService by lazy {
         val retrofit = Retrofit.Builder()

@@ -9,17 +9,15 @@ import retrofit2.http.Query
 
 interface ApiService {
 
+    // Get all requests (optionally filter by status)
     @GET("get_requests.php")
-    fun getRequests(): Call<QueueResponse>
+    fun getRequests(@Query("status") status: String? = null): Call<QueueResponse>
 
+    // Get queue and user requests (optionally filter by student_number)
     @GET("get_queue.php")
-    fun getQueue(): Call<QueueResponse>
+    fun getQueueWithRequests(@Query("student_number") studentNumber: String? = null): Call<QueueResponse>
 
-    @GET("get_queue.php")
-    fun getQueueWithRequests(
-        @Query("student_number") studentNumber: String
-    ): Call<QueueResponse>
-
+    // Submit a new request
     @FormUrlEncoded
     @POST("submit_request.php")
     fun submitRequest(
@@ -32,11 +30,12 @@ interface ApiService {
         @Field("walk_in") walk_in: Int
     ): Call<QueueResponse>
 
+    // Update queue/request status
     @FormUrlEncoded
     @POST("update_queue.php")
     fun updateQueue(
         @Field("id") id: Int,
         @Field("status") status: String,
-        @Field("served_by") served_by: String?
+        @Field("served_by") served_by: String? = null
     ): Call<QueueResponse>
 }

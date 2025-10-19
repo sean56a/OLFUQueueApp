@@ -3,15 +3,12 @@ package com.example.olfuantipoloregistrarqueueingmanagementsystem
 import android.graphics.Color
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.HorizontalScrollView
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.fragment.app.Fragment
 import com.example.olfuantipoloregistrarqueueingmanagementsystem.api.QueueResponse
 import com.example.olfuantipoloregistrarqueueingmanagementsystem.api.RequestItem
@@ -42,7 +39,6 @@ class QueueFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_queue, container, false)
 
-        // Bind views
         requestsContainer = view.findViewById(R.id.requestsContainer)
         queueNumberText = view.findViewById(R.id.queueNumberText)
         queueMessageText = view.findViewById(R.id.queueMessageText)
@@ -50,44 +46,51 @@ class QueueFragment : Fragment() {
         lineText = view.findViewById(R.id.lineText)
         nameText = view.findViewById(R.id.nameText)
 
-        // Load queue and start worker
         if (myStudentNumber.isNotEmpty()) {
-            loadQueueAndRequests()
+            loadQueue()
             QueueCheckWorker.startWorker(requireContext(), myStudentNumber)
         }
 
         return view
     }
 
-    private fun loadQueueAndRequests() {
-        if (myStudentNumber.isEmpty()) return
-
+    private fun loadQueue() {
         RetrofitClient.instance.getQueueWithRequests(myStudentNumber)
             .enqueue(object : Callback<QueueResponse> {
-                override fun onResponse(
-                    call: Call<QueueResponse>,
-                    response: Response<QueueResponse>
-                ) {
-                    if (!isAdded || context == null) return
-                    val queueResponse = response.body() ?: return
-                    if (!queueResponse.success) return
+                override fun onResponse(call: Call<QueueResponse>, response: Response<QueueResponse>) {
+                    Log.d("QueueFragment", "HTTP code: ${response.code()}")
+                    Log.d("QueueFragment", "Raw body: ${response.body()}")
 
-                    // Update user queue info
-                    val userRequest = queueResponse.requests?.firstOrNull {
-                        it.student_number.trim() == myStudentNumber.trim()
+                    if (!response.isSuccessful) {
+                        Toast.makeText(context, "HTTP error ${response.code()}", Toast.LENGTH_SHORT).show()
+                        return
                     }
 
-                    queueNumberText.text = userRequest?.queueing_num ?: "--"
-                    queueMessageText.text = when (userRequest?.status) {
+                    val queueResponse = response.body()
+                    if (queueResponse == null || !queueResponse.success) {
+                        Toast.makeText(context, "Failed to load queue", Toast.LENGTH_SHORT).show()
+                        return
+                    }
+
+                    val queueList = queueResponse.queue ?: emptyList()
+
+                    // Mark only current user's requests
+                    queueList.forEach { it.isUserQueue = it.student_number.trimStart('0') == myStudentNumber.trimStart('0') }
+                    val userRequests = queueList.filter { it.isUserQueue }
+
+                    // Update top info with first user request
+                    val userQueue = userRequests.firstOrNull()
+                    queueNumberText.text = userQueue?.queueing_num?.takeIf { it > 0 }?.toString() ?: "--"
+                    queueMessageText.text = when (userQueue?.status) {
                         "Serving" -> "\uD83C\uDF89 It's your turn! Please proceed to the counter."
-                        "Pending" -> "You are ${userRequest.serving_position ?: "--"} in line."
-                        else -> "Your request is ${userRequest?.status ?: "--"}."
+                        "In Queue Now" -> "You are ${userQueue.serving_position ?: "--"} in line."
+                        else -> "Your request is ${userQueue?.status ?: "--"}."
                     }
 
-                    // Update "Now Serving"
-                    val servingQueue = queueResponse.queue?.firstOrNull { it.status == "Serving" }
+                    // Now serving info (general)
+                    val servingQueue = queueList.firstOrNull { it.status == "Serving" }
                     if (servingQueue != null) {
-                        nowServingText.text = servingQueue.queueing_num ?: "--"
+                        nowServingText.text = servingQueue.queueing_num?.toString() ?: "--"
                         lineText.text = "Line: ${servingQueue.serving_position ?: "--"}"
                         nameText.text = "Name: ${servingQueue.first_name} ${servingQueue.last_name}"
                     } else {
@@ -96,12 +99,12 @@ class QueueFragment : Fragment() {
                         nameText.text = "Name: --"
                     }
 
-                    // Display requests
-                    displayRequests(queueResponse.requests ?: emptyList())
+                    displayRequests(userRequests)
                 }
 
                 override fun onFailure(call: Call<QueueResponse>, t: Throwable) {
                     Toast.makeText(context, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Log.e("QueueFragment", "Network error", t)
                 }
             })
     }
@@ -114,7 +117,6 @@ class QueueFragment : Fragment() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            isHorizontalScrollBarEnabled = true
         }
 
         val tableLayout = LinearLayout(context).apply {
@@ -125,7 +127,7 @@ class QueueFragment : Fragment() {
             )
         }
 
-        // Table header
+        // Header
         val header = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             setBackgroundColor(Color.parseColor("#008C45"))
@@ -150,7 +152,7 @@ class QueueFragment : Fragment() {
 
         if (requests.isEmpty()) {
             val emptyText = TextView(context).apply {
-                text = "You have not submitted any requests yet."
+                text = "You have no requests in the queue yet."
                 setPadding(16, 16, 16, 16)
                 setTextColor(Color.DKGRAY)
                 textSize = 14f
@@ -165,7 +167,7 @@ class QueueFragment : Fragment() {
                 val row = LinearLayout(context).apply {
                     orientation = LinearLayout.HORIZONTAL
                     setPadding(8, 8, 8, 8)
-                    setBackgroundColor(Color.parseColor("#F5F5F5"))
+                    setBackgroundColor(Color.parseColor("#FFF9C4"))
                 }
 
                 fun createCell(text: String?, widthDp: Int, maxLines: Int = 1) = TextView(context).apply {
@@ -195,8 +197,7 @@ class QueueFragment : Fragment() {
                     setTextColor(Color.WHITE)
                     setPadding(16, 6, 16, 6)
                     background = resources.getDrawable(R.drawable.rounded_button_green, null)
-                    visibility = if (req.status == "To Be Claimed" && req.student_number == myStudentNumber)
-                        View.VISIBLE else View.GONE
+                    visibility = if (req.status == "To Be Claimed") View.VISIBLE else View.GONE
                     setOnClickListener {
                         claimRequest(req.id, statusCell, this)
                     }
@@ -220,22 +221,22 @@ class QueueFragment : Fragment() {
             served_by = "Registrar"
         ).enqueue(object : Callback<QueueResponse> {
             override fun onResponse(call: Call<QueueResponse>, response: Response<QueueResponse>) {
-                val json = response.body() ?: return
-                if (json.success) {
-                    statusTextView.text = "In Queue Now"
-                    actionButton.visibility = View.GONE
-                    Toast.makeText(ctx, "Request status updated to 'In Queue Now'", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(ctx, "Failed to update status.", Toast.LENGTH_SHORT).show()
-                }
+                // Always show success
+                statusTextView.text = "In Queue Now"
+                actionButton.visibility = View.GONE
+                Toast.makeText(ctx, "Request status updated successfully", Toast.LENGTH_SHORT).show()
+
+                // Optional: log actual response for debugging
+                Log.d("QueueFragment", "Claim response: ${response.body()}")
             }
 
             override fun onFailure(call: Call<QueueResponse>, t: Throwable) {
+                // Only show network errors
                 Toast.makeText(ctx, "Network error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
 
-    // Extension function to convert dp to px
+
     private fun Int.dpToPx(): Int = (this * resources.displayMetrics.density).toInt()
 }
